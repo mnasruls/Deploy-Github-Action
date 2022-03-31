@@ -1,0 +1,25 @@
+name: Deploy to Virtual Machine
+on:
+  push:
+    branches:
+      - main
+jobs:
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: executing deploy to server using remote ssh
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.KEY }}
+        port: ${{ secrets.PORT }}
+        script: |
+          cd /home/nasrulmuhammad748/Deploy-Github-Action
+          git pull origin main
+          docker stop nasrulscontainer
+          docker rm nasrulscontainer
+          docker build -t googlecloud:latest .
+          docker run -d -p 8080:8080 -e APP_PORT="8080" -e DB_PORT="3306" -e DB_DRIVER="mysql" -e DB_NAME="DeployGCP" -e DB_ADDRESS="${{ secrets.DBHOST }}" -e DB_USERNAME="${{ secrets.DBUSERNAME }}" -e DB_PASSWORD="${{ secrets.DBPASSWORD }}" --name nasrulscontainer googlecloud:latest
